@@ -92,8 +92,8 @@ int main(void)
   HAL_Delay(20);
   OLED_Init();
   OLED_NewFrame();
-  OLED_DrawLine(0, 0, 127, 63, OLED_COLOR_NORMAL);
-  OLED_DrawLine(0, 63, 127, 0, OLED_COLOR_NORMAL);
+  OLED_DrawImage(43, 20, &bilibiliImg, OLED_COLOR_NORMAL);
+   OLED_PrintString(0, 0, "波特律动,Hello!", &font16x16, OLED_COLOR_NORMAL);
   OLED_ShowFrame();
   /* USER CODE END 2 */
 
@@ -101,6 +101,15 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+    for (uint8_t i = 0; i < 64; i++)
+    {
+      OLED_NewFrame();
+      OLED_DrawImage(43, 20, &bilibiliImg, OLED_COLOR_NORMAL);
+      OLED_PrintString(128-5*i, 0, "波特律动,Hello!", &font16x16, OLED_COLOR_NORMAL);
+
+      OLED_ShowFrame();
+      HAL_Delay(20);
+    }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
