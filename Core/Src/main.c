@@ -101,11 +101,13 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    for (uint8_t i = 0; i < 64; i++)
+    // Four Chinese glyphs and seven ASCII glyphs in the scrolling text.
+
+    for (int16_t x = 0; x <64; x++)
     {
       OLED_NewFrame();
       OLED_DrawImage(43, 20, &bilibiliImg, OLED_COLOR_NORMAL);
-      OLED_PrintString(128-5*i, 0, "波特律动,Hello!", &font16x16, OLED_COLOR_NORMAL);
+      OLED_PrintString(128-4*x, 0, "波特律动,Hello!", &font16x16, OLED_COLOR_NORMAL);
 
       OLED_ShowFrame();
       HAL_Delay(20);

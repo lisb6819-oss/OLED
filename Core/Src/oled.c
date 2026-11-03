@@ -312,15 +312,19 @@ void OLED_SetBits(uint8_t x, uint8_t y, uint8_t data, OLED_ColorMode color)
  * @note 此函数将显存中从(x,y)开始的w*h个像素设置为data中的数据
  * @note data的数据应该采用列行式排列
  */
-void OLED_SetBlock(uint8_t x, uint8_t y, const uint8_t *data, uint8_t w, uint8_t h, OLED_ColorMode color)
+void OLED_SetBlock(int16_t x, uint8_t y, const uint8_t *data, uint8_t w, uint8_t h, OLED_ColorMode color)
 {
   uint8_t fullRow = h / 8; // 完整的行数
   uint8_t partBit = h % 8; // 不完整的字节中的有效位数
   for (uint8_t i = 0; i < w; i++)
   {
+    // Clip before passing the column to the uint8_t framebuffer functions.
+    int32_t column = (int32_t)x + i;
+    if (column < 0 || column >= OLED_COLUMN)
+      continue;
     for (uint8_t j = 0; j < fullRow; j++)
     {
-      OLED_SetBits(x + i, y + j * 8, data[i + j * w], color);
+      OLED_SetBits((uint8_t)column, y + j * 8, data[i + j * w], color);
     }
   }
   if (partBit)
@@ -328,7 +332,10 @@ void OLED_SetBlock(uint8_t x, uint8_t y, const uint8_t *data, uint8_t w, uint8_t
     uint16_t fullNum = w * fullRow; // 完整的字节数
     for (uint8_t i = 0; i < w; i++)
     {
-      OLED_SetBits_Fine(x + i, y + (fullRow * 8), data[fullNum + i], partBit, color);
+      int32_t column = (int32_t)x + i;
+      if (column < 0 || column >= OLED_COLUMN)
+        continue;
+      OLED_SetBits_Fine((uint8_t)column, y + (fullRow * 8), data[fullNum + i], partBit, color);
     }
   }
   // 使用OLED_SetPixel实现
@@ -654,7 +661,7 @@ void OLED_DrawImage(uint8_t x, uint8_t y, const Image *img, OLED_ColorMode color
  * @param font 字体
  * @param color 颜色
  */
-void OLED_PrintASCIIChar(uint8_t x, uint8_t y, char ch, const ASCIIFont *font, OLED_ColorMode color)
+void OLED_PrintASCIIChar(int16_t x, uint8_t y, char ch, const ASCIIFont *font, OLED_ColorMode color)
 {
   OLED_SetBlock(x, y, font->chars + (ch - ' ') * (((font->h + 7) / 8) * font->w), font->w, font->h, color);
 }
@@ -667,9 +674,9 @@ void OLED_PrintASCIIChar(uint8_t x, uint8_t y, char ch, const ASCIIFont *font, O
  * @param font 字体
  * @param color 颜色
  */
-void OLED_PrintASCIIString(uint8_t x, uint8_t y, char *str, const ASCIIFont *font, OLED_ColorMode color)
+void OLED_PrintASCIIString(int16_t x, uint8_t y, char *str, const ASCIIFont *font, OLED_ColorMode color)
 {
-  uint8_t x0 = x;
+  int16_t x0 = x;
   while (*str)
   {
     OLED_PrintASCIIChar(x0, y, *str, font, color);
@@ -726,7 +733,7 @@ uint8_t _OLED_GetUTF8Len(char *string)
  * 1. 编译器字符集设置为UTF-8
  * 2. 使用波特律动LED取模工具生成字模(https://led.baud-dance.com)
  */
-void OLED_PrintString(uint8_t x, uint8_t y, char *str, const Font *font, OLED_ColorMode color)
+void OLED_PrintString(int16_t x, uint8_t y, char *str, const Font *font, OLED_ColorMode color)
 {
   uint16_t i = 0;                                       // 字符串索引
   uint8_t oneLen = (((font->h + 7) / 8) * font->w) + 4; // 一个字模占多少字节
