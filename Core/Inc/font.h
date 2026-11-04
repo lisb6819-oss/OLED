@@ -39,5 +39,9 @@ typedef struct Image {
 } Image;
 
 extern const Image bilibiliImg;
+extern const Image tempImg;
+extern const Image humImg;
+
+
 
 #endif // __FONT_H
