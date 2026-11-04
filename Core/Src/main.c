@@ -24,6 +24,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "oled.h"
+#include "aht20.h"
+#include "stdio.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -91,27 +93,27 @@ int main(void)
   /* USER CODE BEGIN 2 */
   HAL_Delay(20);
   OLED_Init();
-  OLED_NewFrame();
-  OLED_DrawImage(43, 20, &bilibiliImg, OLED_COLOR_NORMAL);
-   OLED_PrintString(0, 0, "波特律动,Hello!", &font16x16, OLED_COLOR_NORMAL);
-  OLED_ShowFrame();
+  AHT20_Init();
+  float temperature, humidity;
+  char message[50];
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    // Four Chinese glyphs and seven ASCII glyphs in the scrolling text.
+    AHT20_Measure();
+    temperature = AHT20_Temperature();
+    humidity = AHT20_Humidity();
+    sprintf(message, "Temp: %.2f C", temperature);
+    OLED_PrintString(0, 0, message,&font16x16,OLED_COLOR_NORMAL );
 
-    for (int16_t x = 0; x <64; x++)
-    {
-      OLED_NewFrame();
-      OLED_DrawImage(43, 20, &bilibiliImg, OLED_COLOR_NORMAL);
-      OLED_PrintString(128-4*x, 0, "波特律动,Hello!", &font16x16, OLED_COLOR_NORMAL);
+    sprintf(message, "Humidity: %.2f %%", humidity);
+    OLED_PrintString(0, 18, message,&font16x16,OLED_COLOR_NORMAL );
 
-      OLED_ShowFrame();
-      HAL_Delay(20);
-    }
+    OLED_ShowFrame();
+    
+    HAL_Delay(1000);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
