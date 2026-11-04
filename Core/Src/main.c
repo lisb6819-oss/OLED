@@ -105,10 +105,10 @@ int main(void)
     AHT20_Measure();
     temperature = AHT20_Temperature();
     humidity = AHT20_Humidity();
-    sprintf(message, "Temp: %.2f C", temperature);
+    sprintf(message, "温度: %.2f ℃", temperature);
     OLED_PrintString(0, 0, message,&font16x16,OLED_COLOR_NORMAL );
 
-    sprintf(message, "Humidity: %.2f %%", humidity);
+    sprintf(message, "湿度: %.1f %%", humidity);
     OLED_PrintString(0, 18, message,&font16x16,OLED_COLOR_NORMAL );
 
     OLED_ShowFrame();
