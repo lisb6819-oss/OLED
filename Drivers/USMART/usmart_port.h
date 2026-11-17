@@ -53,6 +53,7 @@
 
 
 #include "usart.h"
+#include <stdio.h>
 
 
 
@@ -103,6 +104,7 @@ typedef unsigned           int  uint32_t;
 
 
 
+void usmart_uart_rx_init(void);             /* USART2 IDLE 接收，UART 初始化后调用 */
 char * usmart_get_input_string(void);        /* 获取输入数据流 */
 void usmart_timx_reset_time(void);              /* 复位运行时间 */
 uint32_t usmart_timx_get_time(void);            /* 获取运行时间 */

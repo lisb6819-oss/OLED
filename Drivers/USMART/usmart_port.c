@@ -44,6 +44,7 @@
 
 #include "usmart.h"
 #include "usmart_port.h"
+#include <string.h>
 
 TIM_HandleTypeDef g_timx_usmart_handle;      /* 定时器句柄 */
 
@@ -55,19 +56,92 @@ TIM_HandleTypeDef g_timx_usmart_handle;      /* 定时器句柄 */
  *   @arg       0,  没有接收到数据
  *   @arg       其他,数据流首地址(不能是0)
  */
-char *usmart_get_input_string(void)
-{
-    uint8_t len;
-    char *pbuf = 0;
+/* RX, pending and parser buffers have separate lifetimes. */
+static uint8_t usmart_uart_rx_buf[PARM_LEN + 1];
+static char usmart_pending_buf[PARM_LEN + 1];
+static char usmart_input_buf[PARM_LEN + 1];
+static volatile uint8_t usmart_input_ready;
+static uint8_t usmart_drop_until_idle;
 
-    if (g_usart_rx_sta & 0x8000)        /* 串口接收完成？ */
+void usmart_uart_rx_init(void)
+{
+    usmart_input_ready = 0;
+    usmart_drop_until_idle = 0;
+    if (HAL_UARTEx_ReceiveToIdle_IT(&huart2, usmart_uart_rx_buf,
+                                  sizeof(usmart_uart_rx_buf)) != HAL_OK)
     {
-        len = g_usart_rx_sta & 0x3fff;  /* 得到此次接收到的数据长度 */
-        g_usart_rx_buf[len] = '\0';     /* 在末尾加入结束符. */
-        pbuf = (char*)g_usart_rx_buf;
-        g_usart_rx_sta = 0;             /* 开启下一次接收 */
+        Error_Handler();
+    }
+}
+
+void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
+{
+    if (huart != &huart2)
+    {
+        return;
     }
 
+    if (HAL_UARTEx_GetRxEventType(huart) == HAL_UART_RXEVENT_TC)
+    {
+        /* A full buffer is an oversized frame, not a complete command. */
+        usmart_drop_until_idle = 1;
+    }
+    else if (usmart_drop_until_idle)
+    {
+        /* Discard the rest of an oversized frame up to its IDLE event. */
+        usmart_drop_until_idle = 0;
+    }
+    else if (!usmart_input_ready && Size <= PARM_LEN)
+    {
+        while (Size > 0 && (usmart_uart_rx_buf[Size - 1] == '\r' ||
+                            usmart_uart_rx_buf[Size - 1] == '\n'))
+        {
+            Size--;
+        }
+        if (Size > 0)
+        {
+            memcpy(usmart_pending_buf, usmart_uart_rx_buf, Size);
+            usmart_pending_buf[Size] = '\0';
+            usmart_input_ready = 1;
+        }
+    }
+
+    /* ReceiveToIdle_IT must be restarted after each event. */
+    if (HAL_UARTEx_ReceiveToIdle_IT(huart, usmart_uart_rx_buf,
+                                  sizeof(usmart_uart_rx_buf)) != HAL_OK)
+    {
+        Error_Handler();
+    }
+}
+
+void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
+{
+    if (huart == &huart2)
+    {
+        (void)HAL_UART_AbortReceive(huart);
+        __HAL_UART_CLEAR_OREFLAG(huart);
+        usmart_drop_until_idle = 1;
+        if (HAL_UARTEx_ReceiveToIdle_IT(huart, usmart_uart_rx_buf,
+                                      sizeof(usmart_uart_rx_buf)) != HAL_OK)
+        {
+            Error_Handler();
+        }
+    }
+}
+
+char *usmart_get_input_string(void)
+{
+    uint32_t primask = __get_PRIMASK();
+    char *pbuf = 0;
+
+    __disable_irq();
+    if (usmart_input_ready)
+    {
+        strcpy(usmart_input_buf, usmart_pending_buf);
+        usmart_input_ready = 0;
+        pbuf = usmart_input_buf;
+    }
+    __set_PRIMASK(primask);
     return pbuf;
 }
 
