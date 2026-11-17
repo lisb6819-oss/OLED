@@ -19,8 +19,7 @@ struct _m_usmart_nametab usmart_nametab[] =
     (void *)read_addr, "uint32_t read_addr(uint32_t addr)",
     (void *)write_addr, "void write_addr(uint32_t addr,uint32_t val)",
 #endif
-    (void *)delay_ms, "void delay_ms(uint16_t nms)",
-    (void *)delay_us, "void delay_us(uint32_t nus)",
+    (void *)HAL_Delay, "void HAL_Delay(uint32_t Delay)",
         
     
 
