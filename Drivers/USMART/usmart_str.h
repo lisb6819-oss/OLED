@@ -49,7 +49,7 @@
 #ifndef __USMART_STR_H
 #define __USMART_STR_H
 
-#include "./USMART/usmart_port.h"
+#include "usmart_port.h"
 
 
 uint8_t usmart_get_parmpos(uint8_t num);                /* 得到某个参数在参数列里面的起始位置 */

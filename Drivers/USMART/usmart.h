@@ -49,7 +49,7 @@
 #ifndef __USMART_H
 #define __USMART_H
 
-#include "./USMART/usmart_port.h"
+#include "usmart_port.h"
 
 
 #define USMART_OK               0       /* 无错误 */

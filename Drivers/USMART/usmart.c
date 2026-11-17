@@ -47,9 +47,9 @@
  ****************************************************************************************************
  */
 
-#include "./USMART/usmart.h"
-#include "./USMART/usmart_str.h"
-#include "./USMART/usmart_port.h"
+#include "usmart.h"
+#include "usmart_str.h"
+#include "usmart_port.h"
 
 
 /* 系统命令 */

@@ -48,11 +48,17 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     Core/Src/oled.c
     Core/Src/font.c
     Core/Src/aht20.c
+    Drivers/USMART/usmart.c
+    Drivers/USMART/usmart_config.c
+    Drivers/USMART/usmart_port.c
+    Drivers/USMART/usmart_str.c
 )
 
 # Add include paths
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined include paths
+    Drivers
+    Drivers/USMART
 )
 
 # Add project symbols (macros)

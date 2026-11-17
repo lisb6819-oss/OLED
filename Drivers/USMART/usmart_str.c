@@ -47,8 +47,8 @@
  ****************************************************************************************************
  */
 
-#include "./USMART/usmart.h"
-#include "./USMART/usmart_str.h"
+#include "usmart.h"
+#include "usmart_str.h"
 
 /**
  * @brief       对比字符串str1和str2

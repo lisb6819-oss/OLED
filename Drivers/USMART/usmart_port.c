@@ -42,8 +42,8 @@
  ****************************************************************************************************
  */
 
-#include "./USMART/usmart.h"
-#include "./USMART/usmart_port.h"
+#include "usmart.h"
+#include "usmart_port.h"
 
 TIM_HandleTypeDef g_timx_usmart_handle;      /* 定时器句柄 */
 

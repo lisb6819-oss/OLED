@@ -50,8 +50,9 @@
 #ifndef __USMART_PORT_H
 #define __USMART_PORT_H
 
-#include "./SYSTEM/sys/sys.h"
-#include "./SYSTEM/usart/usart.h"
+
+
+#include "usart.h"
 
 
 
