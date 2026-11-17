@@ -1,5 +1,6 @@
 #include "usmart.h"
 #include "usmart_str.h"
+#include "oled.h"
 
 /******************************************************************************************/
 /* 用户配置区
@@ -20,6 +21,7 @@ struct _m_usmart_nametab usmart_nametab[] =
     (void *)write_addr, "void write_addr(uint32_t addr,uint32_t val)",
 #endif
     (void *)HAL_Delay, "void HAL_Delay(uint32_t Delay)",
+    (void *)OLED_DrawLine, "void OLED_DrawLine(uint8_t x1,uint8_t y1,uint8_t x2,uint8_t y2,OLED_ColorMode color)",
         
     
 
