@@ -26,6 +26,7 @@
 /* USER CODE BEGIN Includes */
 #include "oled.h"
 #include "aht20.h"
+#include "usmart.h"
 #include "stdio.h"
 /* USER CODE END Includes */
 
@@ -93,6 +94,12 @@ int main(void)
   MX_I2C1_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
+  uint32_t tim4_clock = HAL_RCC_GetPCLK1Freq();
+  if ((RCC->CFGR & RCC_CFGR_PPRE1) != 0U)
+  {
+    tim4_clock *= 2U;
+  }
+  usmart_dev.init((uint16_t)(tim4_clock / 1000000U));
   HAL_Delay(20);
   OLED_Init();
   AHT20_Init();

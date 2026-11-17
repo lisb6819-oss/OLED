@@ -52,6 +52,8 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     Drivers/USMART/usmart_config.c
     Drivers/USMART/usmart_port.c
     Drivers/USMART/usmart_str.c
+    Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.c
+    Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim_ex.c
 )
 
 # Add include paths

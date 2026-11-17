@@ -46,7 +46,9 @@
 #include "usmart_port.h"
 #include <string.h>
 
+#if USMART_ENTIMX_SCAN == 1
 TIM_HandleTypeDef g_timx_usmart_handle;      /* 定时器句柄 */
+#endif
 
 /**
  * @brief       获取输入数据流(字符串)
@@ -201,9 +203,16 @@ void usmart_timx_init(uint16_t arr, uint16_t psc)
     g_timx_usmart_handle.Init.CounterMode = TIM_COUNTERMODE_UP;  /* 向上计数器 */
     g_timx_usmart_handle.Init.Period = arr;                      /* 自动装载值 */
     g_timx_usmart_handle.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-    HAL_TIM_Base_Init(&g_timx_usmart_handle);
-    HAL_TIM_Base_Start_IT(&g_timx_usmart_handle);                /* 使能定时器和定时器中断 */
-    HAL_NVIC_SetPriority(USMART_TIMX_IRQn,3,3);                  /* 设置中断优先级，抢占优先级3，子优先级3 */
+    if (HAL_TIM_Base_Init(&g_timx_usmart_handle) != HAL_OK)
+    {
+        Error_Handler();
+    }
+    __HAL_TIM_CLEAR_FLAG(&g_timx_usmart_handle, TIM_FLAG_UPDATE);
+    if (HAL_TIM_Base_Start_IT(&g_timx_usmart_handle) != HAL_OK)
+    {
+        Error_Handler();
+    }
+    HAL_NVIC_SetPriority(USMART_TIMX_IRQn, 3, 0);                /* 分组4：4位抢占优先级，无子优先级 */
     HAL_NVIC_EnableIRQ(USMART_TIMX_IRQn);                        /* 开启ITM中断 */ 
 }
 
@@ -214,7 +223,8 @@ void usmart_timx_init(uint16_t arr, uint16_t psc)
  */
 void USMART_TIMX_IRQHandler(void)
 {
-    if(__HAL_TIM_GET_IT_SOURCE(&g_timx_usmart_handle,TIM_IT_UPDATE)==SET)/* 溢出中断 */
+    if ((__HAL_TIM_GET_FLAG(&g_timx_usmart_handle, TIM_FLAG_UPDATE) != RESET) &&
+        (__HAL_TIM_GET_IT_SOURCE(&g_timx_usmart_handle, TIM_IT_UPDATE) != RESET))
     {
         usmart_dev.scan();                                   /* 执行usmart扫描 */
         __HAL_TIM_SET_COUNTER(&g_timx_usmart_handle, 0);;    /* 清空定时器的CNT */

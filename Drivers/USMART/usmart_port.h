@@ -96,11 +96,7 @@
 
 
 /* 如果没有定义uint32_t,则定义 */
-#ifndef uint32_t
-typedef unsigned           char uint8_t;
-typedef unsigned short     int  uint16_t;
-typedef unsigned           int  uint32_t;
-#endif
+
 
 
 
