@@ -24,6 +24,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "oled.h"
+#include "mpu6050.h"
+#include <stdio.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -44,6 +46,10 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+/* AD0 接低电平用 0x68；接高电平改为 MPU6050_ADDRESS_AD0_HIGH。 */
+static MPU6050_HandleTypeDef mpu6050;
+static MPU6050_RawData motion;
+static HAL_StatusTypeDef mpu_status;
 
 /* USER CODE END PV */
 
@@ -55,6 +61,48 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+/**
+ * @brief 用 6x8 字体显示一轴原始值，每行 8 像素。
+ * @note %+6d 固定数值宽度且显示正负号，可容纳 -32768~+32767。
+ *       使用整数格式化，无需启用 printf 浮点支持。
+ */
+static void DisplayAxis(uint8_t y, const char *name, int16_t value)
+{
+  char line[22];
+  snprintf(line, sizeof(line), "%s:%+6d", name, (int)value);
+  OLED_PrintASCIIString(0, y, line, &afont8x6, OLED_COLOR_NORMAL);
+}
+
+/** @brief 清空缓存，绘制六轴数据，最后统一刷新屏幕。 */
+static void DisplayMotion(void)
+{
+  OLED_NewFrame();
+  OLED_PrintASCIIString(0, 0, "MPU6050 RAW", &afont8x6, OLED_COLOR_NORMAL);
+  DisplayAxis(8,  "AX", motion.accel_x);
+  DisplayAxis(16, "AY", motion.accel_y);
+  DisplayAxis(24, "AZ", motion.accel_z);
+  DisplayAxis(32, "GX", motion.gyro_x);
+  DisplayAxis(40, "GY", motion.gyro_y);
+  DisplayAxis(48, "GZ", motion.gyro_z);
+  OLED_PrintASCIIString(0, 56, "A:2g G:250dps", &afont8x6, OLED_COLOR_NORMAL);
+  OLED_ShowFrame();
+}
+
+/** @brief 失败时显示提示，避免将旧数据误认为实时数据。 */
+static void DisplayMotionError(HAL_StatusTypeDef status, uint8_t init_failed)
+{
+  OLED_NewFrame();
+  OLED_PrintASCIIString(0, 0, "MPU6050", &afont8x6, OLED_COLOR_NORMAL);
+  OLED_PrintASCIIString(0, 16, init_failed ? "INIT FAILED" : "READ FAILED",
+                        &afont8x6, OLED_COLOR_NORMAL);
+  OLED_PrintASCIIString(0, 24, status == HAL_TIMEOUT ? "I2C TIMEOUT" :
+                        status == HAL_BUSY ? "I2C BUSY" : "I2C/ID ERROR",
+                        &afont8x6, OLED_COLOR_NORMAL);
+  OLED_PrintASCIIString(0, 40, "CHECK WIRE / AD0", &afont8x6, OLED_COLOR_NORMAL);
+  OLED_PrintASCIIString(0, 56, "RETRY IN 1s", &afont8x6, OLED_COLOR_NORMAL);
+  OLED_ShowFrame();
+}
 
 /* USER CODE END 0 */
 
@@ -91,21 +139,36 @@ int main(void)
   /* USER CODE BEGIN 2 */
   HAL_Delay(20);
   OLED_Init();
-
-
-  OLED_NewFrame();
-  OLED_DrawImage(43, 20, &bilibiliImg, OLED_COLOR_NORMAL);
-  OLED_PrintString(0, 0, "波特律动,Hello!", &font16x16, OLED_COLOR_NORMAL);
-  OLED_ShowFrame();
+  /* 两个器件共用 hi2c1，主循环顺序访问，不会同时占用总线。 */
+  mpu_status = MPU6050_Init(&mpu6050, &hi2c1, MPU6050_ADDRESS_AD0_LOW);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    // Four Chinese glyphs and seven ASCII glyphs in the scrolling text.
+    if (mpu_status != HAL_OK)
+    {
+      /* 初始化失败时每秒重试，不让主程序停在死循环中。 */
+      DisplayMotionError(mpu_status, 1);
+      HAL_Delay(1000);
+      mpu_status = MPU6050_Init(&mpu6050, &hi2c1, MPU6050_ADDRESS_AD0_LOW);
+      continue;
+    }
 
-
+    mpu_status = MPU6050_ReadRaw(&mpu6050, &motion);
+    if (mpu_status == HAL_OK)
+    {
+      DisplayMotion();
+      /* 传感器内部 100Hz 采样，屏幕每次刷新后延时 100ms，便于观察。 */
+      HAL_Delay(100);
+    }
+    else
+    {
+      DisplayMotionError(mpu_status, 0);
+      HAL_Delay(1000);
+      mpu_status = MPU6050_Init(&mpu6050, &hi2c1, MPU6050_ADDRESS_AD0_LOW);
+    }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
