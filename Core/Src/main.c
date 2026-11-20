@@ -91,9 +91,11 @@ int main(void)
   /* USER CODE BEGIN 2 */
   HAL_Delay(20);
   OLED_Init();
+
+
   OLED_NewFrame();
   OLED_DrawImage(43, 20, &bilibiliImg, OLED_COLOR_NORMAL);
-   OLED_PrintString(0, 0, "波特律动,Hello!", &font16x16, OLED_COLOR_NORMAL);
+  OLED_PrintString(0, 0, "波特律动,Hello!", &font16x16, OLED_COLOR_NORMAL);
   OLED_ShowFrame();
   /* USER CODE END 2 */
 
@@ -103,15 +105,7 @@ int main(void)
   {
     // Four Chinese glyphs and seven ASCII glyphs in the scrolling text.
 
-    for (int16_t x = 0; x <64; x++)
-    {
-      OLED_NewFrame();
-      OLED_DrawImage(43, 20, &bilibiliImg, OLED_COLOR_NORMAL);
-      OLED_PrintString(128-4*x, 0, "波特律动,Hello!", &font16x16, OLED_COLOR_NORMAL);
 
-      OLED_ShowFrame();
-      HAL_Delay(20);
-    }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
